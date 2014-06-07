@@ -105,5 +105,3 @@ foreach $linea (@lineas){
 
 #cd C:\Users\José Luis\Documents\Perl files
 #proyectoV1.pl
-
-#AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
