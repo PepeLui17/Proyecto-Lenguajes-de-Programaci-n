@@ -21,6 +21,7 @@ package Persona;
 	 $self ->{UNIVERSIDAD} =undef ;
 	 $self ->{CARRERA} =undef ;
 	 $self ->{LUGAR_NACIMIENTO} =undef ;
+	 $self ->{IDENTIFICACION} =undef ;
 
      bless $self, $class; #Perl nos tiene que dar el visto bueno (bendecirla)
      return ($self); #Devolvemos la clase recién construida
@@ -139,6 +140,17 @@ package Persona;
        return $self->{LUGAR_NACIMIENTO};
   }
   
+  #metodo para ver/cambiar la identificación
+  sub identificacion{
+       my $self=shift; #El primer parámetro de un metodo es la  clase
+ 
+       #Miramos si se le ha pasado algún parámetro, en cuyo caso será la identificación
+       $self->{IDENTIFICACION}=shift if (@_);
+
+       #Devolvemos el lugar de nacimiento
+       return $self->{IDENTIFICACION};
+  }
+  
   ######################################################################
   #Destructor
   #
@@ -155,6 +167,7 @@ package Persona;
 		delete ($self->{UNIVERSIDAD}); 
 		delete ($self->{CARRERA}); 
 		delete ($self->{LUGAR_NACIMIENTO}); 
+		delete ($self->{IDENTIFICACION}); 
   }
 
   #Fin

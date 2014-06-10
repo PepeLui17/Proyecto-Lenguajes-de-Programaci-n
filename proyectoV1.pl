@@ -1,3 +1,4 @@
+
 use utf8;
 use Persona;
 
@@ -7,18 +8,15 @@ $archivo=do {
 
 @lineas=split(/\n/, $archivo);
 
-$i = 1;
 my @personas;
 
 foreach $linea (@lineas){
 	$linea =~ s/^\s+|\s+$//g; #TRIM		
-
 	
 	if(length($linea)>0){		
 		$persona= Persona->new(); #Creamos un objeto del tipo persona
 	}
 	
-
 	#Buscando nombres
 	if($linea =~ /([M|m]i nombre es|[M|m]e llamo) ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
 		$persona->nombre($2);
@@ -60,15 +58,15 @@ foreach $linea (@lineas){
 	}
 
 	#Buscando Universidad
-	if($linea =~/(([E|e]studio( en)?)|[S|s]oy estudiante de)( la)?( universidad)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
-	#if($linea =~/(([E|e]studio( en)?)|[S|s]oy estudiante de)( la)?( universidad)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)( en)?( la)?( universidad)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
-	 #if($linea =~/(([E|e]studio( en)?)|[S|s]oy estudiante de)( la)?( universidad)?([A-Za-zÁÉÍÓÚáéíóúñ\s]+)?( en)?( la)?( universidad)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
+	if($linea =~/(([E|e]studio( en)?)|[S|s]oy estudiante de)( la)?( universidad)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){	
 		$universidad = $6;
-		#$universidad = $10;
-		
-		#print $6."\n";
-		if($universidad =~ /([I|i]ngeniería|Ing(\.)?)/){
-			  #print $universidad."\n";
+		if($universidad =~ /[I|i]ng[\n]?/){
+			#No hacer nada
+		}
+		elsif($universidad =~ /en( la)?/){
+			@texto=split(/en la/, $6);
+			$txt=$texto[1];
+			$persona->universidad($txt);
 			  #No hacer nada
 		}
 		else{
@@ -78,77 +76,90 @@ foreach $linea (@lineas){
 	
 	#Buscando Carrera
 	if($linea =~/carrera( de| es)( estudio es)?(( [I|i]ng[\.]?)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+))(,|.)/){
-		$persona->carrera($3);
+		@texto=split(/en la/, $3);
+		$txt=$texto[0];
+		
+		if($txt =~ /[E|e]specialización|[O|o]rientación/){
+			@x=split(/[E|e]specialización|[O|o]rientación/, $txt);
+			$carrera=$x[0];
+			$persona->carrera($carrera);
+		}
+		else{
+			$persona->carrera($txt);	
+		}
 	}
 	else{
 		if($linea =~/([E|e]studio|[S|s]oy estudiante de)(( [I|i]ng[\.]?)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+))(,|.)/){
-			$carrera=$2;
 			$comp=$1."".$2;
 			if($comp =~ /([E|e]studio en la)|estudiante de la/){
 				#No hacer nada
 			}
 			else{
-				$persona->carrera($carrera);				
+				@texto=split(/en la/, $2);
+				$txt=$texto[0];
+				if($txt =~ /[E|e]specialización|[O|o]rientación/){
+					@x=split(/[E|e]specialización|[O|o]rientación/, $txt);
+					$carrera=$x[0];
+					$persona->carrera($carrera);
+				}
+				else{
+					$persona->carrera($txt);	
+				}				
 			}
 		}
 	}
 	
 	#Buscando Lugar de nacimiento
-	#if($temporal =~/([N|n]ací en)( la( ciudad de)?)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.| el)/){
-	#if($temporal =~/([N|n]ací)? en( la( ciudad de)?)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
-	if($linea =~/([N|n]ací en)( la( ciudad de)?)? ([A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
-		#print "Lugar de nacimiento: ".$4."\n";
-		$persona->lugar_nacimiento($4);
+	if($linea =~/([N|n]ací( en| el)?)( la( ciudad de)?)? ([\/\\0-9A-Za-zÁÉÍÓÚáéíóúñ\s]+)(,|.)/){
+		$comp=$5;
+		if($comp =~/en la ciudad de/){
+			@texto=split(/en la ciudad de/, $comp);
+			$lugarNac=$texto[1];
+			$persona->lugar_nacimiento($lugarNac);
+		}
+		elsif($comp =~/el/){
+			@texto=split(/el/, $comp);
+			$lugarNac=$texto[0];
+			$persona->lugar_nacimiento($lugarNac);
+		}
+		elsif($comp =~/[0-9]/){
+			#No hacer nada
+		}
+		else{
+			$persona->lugar_nacimiento($5);
+		}
 	}
-	
-	#Buscando domicilio
-	
-	#Buscando Carrera
-	#if($linea =~/([a-zA-Z]+)([a-zA-Z]*) ([C|c]iencias )([a-zA-Z]+)/){
-	#	#print "Carrera: ".$2.$3.$4."\n";
-	#	$persona->carrera($2.$3.$4);
-	#}
-
-	#Buscando Especializacion
-	if($linea =~/([S|s]istemas )([a-zA-Z]*) ([a-zA-Z]+)/){
-			#print "Especialidad: ".$1.$2." ".$3."\n";
+	#Buscando Identificacion
+	if($linea =~/((matr[í|i]cula |c[é|e]dula )(es )?)(([0-9]+){9,10})/){
+		$persona->identificacion($4);
 	}
-
-	
-	#Hobbies, identificacion, fecha nacimiento, especializacion, dirección
-	#Buscando Fecha de Nacimiento
-	#if($temporal=~/([N|n]ac[?] )([a-z]{2}*) ([a-z]*) ([a-z]*) (([0-9]{2}\/[0-9]{2}\/[0-9]{2,4})|(([0-9]{2}) (de )([a-zA-Z])( de )([0-9]{2,4})))/){
-	#	print "Fecha de Nacimiento: ".$2."\n";
-	#}
-
+		
 	push @personas, $persona;
-	#print "\n";
-	#$i++;
+	
 }
+
+
+$i = 1;
 
 #Mostrando información de cada persona
 foreach $person (@personas){
 	print "Resumen persona # ".$i."\n";
 	print "Nombre: ".$person->nombre."\n";
-	#print "Edad: ".$person->edad."\n";
-	#print "Peso: ".$person->peso."\n";
-	#print "Estatura: ".$person->estatura."\n";
-	#print "Correo: ".$person->correo."\n";
-	#print "Telefono: ".$person->telefono."\n";
-	#print "Estado civil: ".$person->estado_civil."\n";
+	print "Edad: ".$person->edad."\n";
+	print "Peso: ".$person->peso."\n";
+	print "Estatura: ".$person->estatura."\n";
+	print "Correo: ".$person->correo."\n";
+	print "Telefono: ".$person->telefono."\n";
+	print "Estado civil: ".$person->estado_civil."\n";
 	print "Universidad: ".$person->universidad."\n";
 	print "Carrera: ".$person->carrera."\n";
-	#print "Lugar nacimiento: ".$person->lugar_nacimiento."\n";
-	
-	#if($person->edad <21){
-	#	print $person->nombre." tiene ".$person->edad." años, puede ir a la fiesta \n";
-	#}
+	print "Lugar nacimiento: ".$person->lugar_nacimiento."\n";
+	print "Identificacion(Cedula o matricula): ".$person->identificacion."\n";
 	
 	print "\n";
 	$i++;  
   }
 
-#print "\nSuma de edades: ".$sum;
 
 
 #cd C:\Users\José Luis\Documents\Perl files
