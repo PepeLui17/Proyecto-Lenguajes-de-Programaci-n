@@ -138,7 +138,6 @@ foreach $linea (@lineas){
 	
 }
 
-
 $i = 1;
 
 #Mostrando información de cada persona
@@ -159,8 +158,6 @@ foreach $person (@personas){
 	print "\n";
 	$i++;  
   }
-
-
-
+  
 #cd C:\Users\José Luis\Documents\Perl files
 #proyectoV1.pl
